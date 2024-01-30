@@ -15,9 +15,9 @@ import torch.nn as nn
 import numpy as np
 from fastprogress import progress_bar
 
-import wandb
-from utils import *
-from modules import UNet_conditional, EMA
+# import wandb
+from .utils import *
+from .modules import UNet_conditional, EMA
 
 
 config = SimpleNamespace(    
