@@ -28,7 +28,7 @@ config = SimpleNamespace(
     batch_size = 10,
     img_size = 64,
     num_classes = 10,
-    dataset_path = get_cifar(img_size=64),
+    dataset_path = None, #get_cifar(img_size=64),
     train_folder = "train",
     val_folder = "test",
     device = "cuda",
