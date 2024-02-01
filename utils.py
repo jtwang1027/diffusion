@@ -1,6 +1,5 @@
 import os, random
 from pathlib import Path
-from kaggle import api
 import torch
 import torchvision
 import torchvision.transforms as T
@@ -59,6 +58,7 @@ def get_kaggle_dataset(dataset_path, # Local path to download dataset to
                 force=False # Should it overwrite or error if dataset_path exists?
                ):
     '''Downloads an existing dataset and metadata from kaggle'''
+    from kaggle import api
     if not force and Path(dataset_path).exists():
         return Path(dataset_path)
     api.dataset_metadata(dataset_slug, str(dataset_path))
