@@ -129,34 +129,52 @@ class Up(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, c_in=3, c_out=3, time_dim=256, remove_deep_conv=False):
+    def __init__(self, c_in=3, c_out=3, block_out_channels = (64,128,256,512), time_dim=256, remove_deep_conv=False):
         super().__init__()
         self.time_dim = time_dim
         self.remove_deep_conv = remove_deep_conv
         self.inc = DoubleConv(c_in, 64)
-        self.down1 = Down(64, 128)
-        self.sa1 = SelfAttention(128)
-        self.down2 = Down(128, 256)
-        self.sa2 = SelfAttention(256)
-        self.down3 = Down(256, 256)
-        self.sa3 = SelfAttention(256)
+        # self.down1 = Down(64, 128)
+        self.down1 = Down(block_out_channels[0], block_out_channels[1])
+        # self.sa1 = SelfAttention(128)
+        self.sa1 = SelfAttention(block_out_channels[1])
+        # self.down2 = Down(128, 256)
+        self.down2 = Down(block_out_channels[1], block_out_channels[2])
+        # self.sa2 = SelfAttention(256)
+        self.sa2 = SelfAttention(block_out_channels[2])
+        # self.down3 = Down(256, 256)
+        self.down3 = Down(block_out_channels[2], block_out_channels[2])
+        # self.sa3 = SelfAttention(256)
+        self.sa3 = SelfAttention(block_out_channels[2])
 
 
         if remove_deep_conv:
-            self.bot1 = DoubleConv(256, 256)
-            self.bot3 = DoubleConv(256, 256)
+            # self.bot1 = DoubleConv(256, 256)
+            self.bot1 = DoubleConv(block_out_channels[2], block_out_channels[2])
+            # self.bot3 = DoubleConv(256, 256)
+            self.bot3 = DoubleConv(block_out_channels[2], block_out_channels[2])
         else:
-            self.bot1 = DoubleConv(256, 512)
-            self.bot2 = DoubleConv(512, 512)
-            self.bot3 = DoubleConv(512, 256)
+            # self.bot1 = DoubleConv(256, 512)
+            self.bot1 = DoubleConv(block_out_channels[2], block_out_channels[3])
+            # self.bot2 = DoubleConv(512, 512)
+            self.bot2 = DoubleConv(block_out_channels[3], block_out_channels[3])
+            # self.bot3 = DoubleConv(512, 256)
+            self.bot3 = DoubleConv(block_out_channels[3], block_out_channels[2])
 
-        self.up1 = Up(512, 128)
-        self.sa4 = SelfAttention(128)
-        self.up2 = Up(256, 64)
-        self.sa5 = SelfAttention(64)
-        self.up3 = Up(128, 64)
-        self.sa6 = SelfAttention(64)
-        self.outc = nn.Conv2d(64, c_out, kernel_size=1)
+        # self.up1 = Up(512, 128)
+        self.up1 = Up(block_out_channels[3], block_out_channels[1])
+        # self.sa4 = SelfAttention(128)
+        self.sa4 = SelfAttention(block_out_channels[1])
+        # self.up2 = Up(256, 64)
+        self.up2 = Up(block_out_channels[2], block_out_channels[0])
+        # self.sa5 = SelfAttention(64)
+        self.sa5 = SelfAttention(block_out_channels[0])
+        # self.up3 = Up(128, 64)
+        self.up3 = Up(block_out_channels[1], block_out_channels[0])
+        # self.sa6 = SelfAttention(64)
+        self.sa6 = SelfAttention(block_out_channels[0])
+        # self.outc = nn.Conv2d(64, c_out, kernel_size=1)
+        self.outc = nn.Conv2d(block_out_channels[0], c_out, kernel_size=1)
 
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
@@ -200,6 +218,8 @@ class UNet(nn.Module):
 class UNet_conditional(UNet):
     def __init__(self, c_in=3, c_out=3, time_dim=256, num_classes=None, **kwargs):
         super().__init__(c_in, c_out, time_dim, **kwargs)
+
+        # conditional embedding is added to time_dim (and thus has the same embedding dim)
         if num_classes is not None:
             self.label_emb = nn.Embedding(num_classes, time_dim)
 
