@@ -125,6 +125,8 @@ class Up(nn.Module):
         x = self.up(x)
         x = torch.cat([skip_x, x], dim=1)
         x = self.conv(x)
+
+        # broadcast embedding (at index 1) throughout W x H
         emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
         return x + emb
 
@@ -172,7 +174,7 @@ class UNet(nn.Module):
         # self.sa5 = SelfAttention(64)
         self.sa5 = SelfAttention(block_out_channels[0])
         # self.up3 = Up(128, 64)
-        self.up3 = Up(block_out_channels[1], block_out_channels[0])
+        self.up3 = Up(block_out_channels[0]*2, block_out_channels[0]) # x2 for concatenated residual
         # self.sa6 = SelfAttention(64)
         self.sa6 = SelfAttention(block_out_channels[0])
         # self.outc = nn.Conv2d(64, c_out, kernel_size=1)
@@ -186,9 +188,11 @@ class UNet(nn.Module):
         pos_enc_a = torch.sin(t.repeat(1, channels // 2) * inv_freq)
         pos_enc_b = torch.cos(t.repeat(1, channels // 2) * inv_freq)
         pos_enc = torch.cat([pos_enc_a, pos_enc_b], dim=-1)
+
         return pos_enc
 
     def unet_forward(self, x, t):
+
         x1 = self.inc(x)
         x2 = self.down1(x1, t)
         x2 = self.sa1(x2)
