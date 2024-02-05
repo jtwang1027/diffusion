@@ -186,7 +186,7 @@ class UNet(nn.Module):
         pos_enc = torch.cat([pos_enc_a, pos_enc_b], dim=-1)
         return pos_enc
 
-    def unet_forwad(self, x, t):
+    def unet_forward(self, x, t):
         x1 = self.inc(x)
         x2 = self.down1(x1, t)
         x2 = self.sa1(x2)
@@ -212,7 +212,7 @@ class UNet(nn.Module):
     def forward(self, x, t):
         t = t.unsqueeze(-1)
         t = self.pos_encoding(t, self.time_dim)
-        return self.unet_forwad(x, t)
+        return self.unet_forward(x, t)
 
 
 class UNet_conditional(UNet):
@@ -230,4 +230,4 @@ class UNet_conditional(UNet):
         if y is not None:
             t += self.label_emb(y)
 
-        return self.unet_forwad(x, t)
+        return self.unet_forward(x, t)
