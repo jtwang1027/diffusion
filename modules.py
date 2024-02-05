@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-DEFAULT_CHANNEL_SIZES = (64,128,256,512)
 
 def one_param(m):
     "get model first parameter"
@@ -130,13 +129,13 @@ class Up(nn.Module):
         return x + emb
 
 
+DEFAULT_CHANNEL_SIZES = (64,128,256,512)
 class UNet(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, block_out_channels = DEFAULT_CHANNEL_SIZES,remove_deep_conv=False):
         super().__init__()
-        print('block out channels', block_out_channels)
         self.time_dim = time_dim
         self.remove_deep_conv = remove_deep_conv
-        self.inc = DoubleConv(c_in, 64)
+        self.inc = DoubleConv(c_in, block_out_channels[0])
         # self.down1 = Down(64, 128)
         self.down1 = Down(block_out_channels[0], block_out_channels[1])
         # self.sa1 = SelfAttention(128)
