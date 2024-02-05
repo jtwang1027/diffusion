@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+DEFAULT_CHANNEL_SIZES = (64,128,256,512)
+
 def one_param(m):
     "get model first parameter"
     return next(iter(m.parameters()))
@@ -129,8 +131,9 @@ class Up(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, c_in=3, c_out=3, block_out_channels = (64,128,256,512), time_dim=256, remove_deep_conv=False):
+    def __init__(self, c_in=3, c_out=3, time_dim=256, block_out_channels = DEFAULT_CHANNEL_SIZES,remove_deep_conv=False):
         super().__init__()
+        print('block out channels', block_out_channels)
         self.time_dim = time_dim
         self.remove_deep_conv = remove_deep_conv
         self.inc = DoubleConv(c_in, 64)
@@ -216,8 +219,8 @@ class UNet(nn.Module):
 
 
 class UNet_conditional(UNet):
-    def __init__(self, c_in=3, c_out=3, time_dim=256, num_classes=None, **kwargs):
-        super().__init__(c_in, c_out, time_dim, **kwargs)
+    def __init__(self, c_in=3, c_out=3, time_dim=256, block_out_channels = DEFAULT_CHANNEL_SIZES,num_classes=None, **kwargs):
+        super().__init__(c_in, c_out, time_dim, block_out_channels,**kwargs)
 
         # conditional embedding is added to time_dim (and thus has the same embedding dim)
         if num_classes is not None:
